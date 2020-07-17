@@ -1,0 +1,7 @@
+{
+  "name": "Patios-Gruas",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
