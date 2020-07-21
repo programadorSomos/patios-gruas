@@ -1,27 +1,46 @@
 import { Component, OnInit } from '@angular/core';
 import { NavParams, ModalController } from "@ionic/angular";
-import { MapaComponent} from "../../components/mapa/mapa.component";
+import { LocalizarService } from '../../servicios/localizar.service';
+import { Router } from '@angular/router';
+import { User } from '../../clases/user';
+
+
 @Component({
   selector: 'app-fechas',
   templateUrl: './fechas.component.html',
   styleUrls: ['./fechas.component.scss'],
 })
 
+
 export class FechasComponent implements OnInit {
 
   public id: string;
-  private fechas = ['Soy una fecha',
-   'hola mundo'
-  ];
+  private fechas = [];
   private fecha : string;
 
-  constructor(
+  constructor(  
     private navParams: NavParams,
-    private modalController : ModalController
+    private modalController : ModalController,
+    private getLocation: LocalizarService,
+    private router: Router,
   ) { }
 
   ngOnInit() {
-   this.id =  this.navParams.get('id')
+   this.id =  this.navParams.get('id');
+
+
+   this.getLocation.getUserRoutes(this.id).subscribe(doc => {
+    if (!doc) {
+      console.log('No such document!');
+    } else {
+      console.log('Document data:', doc);
+      doc.map(m=>{
+        
+      });
+      this.fechas=doc;
+    }
+  });
+
   }
 
   back() {
@@ -29,13 +48,9 @@ export class FechasComponent implements OnInit {
   }
 
   mapa() {
-    
-    this.modalController.create({
-      component: MapaComponent, 
-      componentProps: {
-        
-      }
-    }).then((modalController)=>modalController.present())
+    //this.getLocation.getUserLocation(this.id =  this.navParams.get('id'), "Mes: 7, dia: 18")
+    this.modalController.dismiss();
+    this.router.navigate(['./tabs-admin/tab-mapa']);
 
     
   }

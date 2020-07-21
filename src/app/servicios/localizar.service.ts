@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
 import { Geolocation } from '@ionic-native/geolocation/ngx';
-import { User } from '../clases/user';
 import { map } from 'rxjs/operators';
 
-export interface Rutas {
+export interface rutas {
   mes: string;
   dia: string;
   hora: string;
@@ -18,12 +17,19 @@ export interface usuario {
   img: string;
 }
 
+export interface location {
+  latitud: string, 
+  longitud: string, 
+  ruta: string,
+  hora: string,
+  minutos: string,
+  user:string
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class LocalizarService {
-
-
 
 
   constructor(
@@ -33,84 +39,89 @@ export class LocalizarService {
   ) { }
 
   coleccionUbicaciones: AngularFirestoreCollection<any>;
-  localizar(user: User) {
-
-    this.geolocation.getCurrentPosition().then((resp) => {
-    }).catch((error) => {
-      console.log('Error getting location', error);
+  localizar(email: string) {
+    let date = new Date()
+    var dia = date.getDate().valueOf();
+    var mes = date.getMonth().valueOf();
+    this.angularFireStore.collection('routes').add({
+      user: email,
+      fecha: 'Mes: ' + (mes + 1) + ', dia: ' + dia
     });
-    let watch = this.geolocation.watchPosition();
-    watch.subscribe((data) => {
 
-      let date = new Date()
-      console.log("Current Date ", date)
+    setInterval(() => {
+      let watch = this.geolocation.getCurrentPosition();
 
-      var dia = date.getDate().valueOf();
-      var mes = date.getMonth().valueOf();
-      var hora = date.getHours().valueOf();
-      var minuto = date.getMinutes().valueOf();
-
-      if(minuto<10){
-        this.angularFireStore.collection('usuarios')
-        .doc(user.email).collection('Mes: ' + (mes+1) + ', Dia:' + dia)
-        .doc(hora + ':' + '0'+ minuto).set({
+      watch.then(data => {
+        let date = new Date()
+        var hora = date.getHours().valueOf();
+        var minuto = date.getMinutes().valueOf();
+        this.angularFireStore.collection('locations').add({
+          ruta: 'Mes: ' + (mes + 1) + ', dia: ' + dia,
+          user: email,
           latitud: data.coords.latitude,
-          longitud: data.coords.longitude
+          longitud: data.coords.longitude,
+          hora: hora,
+          minutos: minuto
         });
-      }else{
-        this.angularFireStore.collection('usuarios')
-        .doc(user.email).collection('Mes: ' + (mes+1) + ', Dia:' + dia)
-        .doc(hora + ':' + minuto).set({
-          latitud: data.coords.latitude,
-          longitud: data.coords.longitude
-        });
-      }
+      })
 
-      // setInterval(()=>{
-
-      // }, 60000)
-
-    });
-  }
-  /*startTracking() {
-    let watch = this.geolocation.watchPosition({}, ( position)=> {
-      if(position){
-        this.addNewLocation(
-          position.coords.latitud,
-          position.coords.longitude,
-          position.coords.timestamp
-        );
-      }
-    }
-    );
-  }*/
-
-  stopTracking() {
+    }, 60000)
   }
 
-  addNewLocation(lng, lat, time){
-    this.coleccionUbicaciones.add({
-      lat, lng, time
-    });
-  }
-  getUserCollection() {
-    return this.angularFireStore.collection('usuarios').snapshotChanges().pipe(map(usuarios => {
+
+ 
+  getUserCollection(){
+    return this.angularFireStore.collection('users').snapshotChanges().pipe(map(usuarios => {
       return usuarios.map(usuario => {
         const data = usuario.payload.doc.data() as usuario;
         data.id = usuario.payload.doc.id;
-        return data;
-      });
+        return data
+      })
     }));
 
   }
-  getUserLocation() {
-    return this.angularFireStore.collection('usuarios').doc('steven@somos.con')
-      .collection('Mes: 5, Dia:25').snapshotChanges();
+
+
+  getUserLocation(fecha:string, user:string){
+
+    return this.angularFireStore.collection('locations', ref=>ref.where("user", "==", user)).snapshotChanges().pipe(map(locations => {
+      return locations.map(location => {
+        const data = location.payload.doc.data() as location;
+        if(data.ruta == fecha){
+          data.user = location.payload.doc.id;
+          console.log("si, si, si")
+        return data
+        } 
+      })
+    }))
 
   }
 
-  getUserRoutes() {
-    return this.angularFireStore.collection('usuarios').doc('steven@somos.con').collection('');
+  getRealTimeLocation() {
+    let date = new Date()
+    var dia = date.getDate().valueOf();
+    var mes = date.getMonth().valueOf();
+
+    return this.angularFireStore.collection('locations', ref=>ref.where("ruta", "==", 'Mes: ' + (mes + 1) + ', dia: ' + dia)).snapshotChanges().pipe(map(locations => {
+      return locations.map(location => {
+        const data = location.payload.doc.data() as location;
+        data.user = location.payload.doc.id;
+        return data
+      })
+    }))
+
+  }
+
+  getUserRoutes(email: string) {
+
+    return this.angularFireStore.collection('routes', ref=>ref.where("user", "==", email)).snapshotChanges().pipe(map(rutas => {
+      return rutas.map(ruta => {
+        const data = ruta.payload.doc.data() as rutas;
+        data.id = ruta.payload.doc.id;
+        return data
+      })
+    }));
+
   }
 
 

@@ -6,7 +6,18 @@ import { TabsPage } from './tabs.page';
 const routes: Routes = [
   {
     path: '',
-    component: TabsPage
+    component: TabsPage,
+    children:[
+      {
+        path: 'tab-menu',
+        loadChildren: () => import('../tab-menu/tab-menu.module').then(m => m.TabMenuPageModule)
+      },
+    ]
+  },
+  { 
+    path: '',
+    redirectTo: '/tabs/tab-menu',
+    pathMatch: 'full'
   }
 ];
 
