@@ -16,8 +16,8 @@ const routes: Routes = [
   },
   {
     path: 'login',
-    loadChildren: () => import('./pages/login/login.module').then( m => m.LoginPageModule),
-    canActivate: [NologinGuard]
+    loadChildren: () => import('./pages/login/login.module').then( m => m.LoginPageModule)/*,
+    canActivate: [NologinGuard]*/
   },
   {
     path: 'photo',

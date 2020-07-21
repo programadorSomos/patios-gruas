@@ -1,3 +1,24 @@
-<p>
-  fechas works!
-</p>
+<ion-header>
+  <ion-toolbar>
+
+    <ion-icon style="margin-left: 10px" slot="start" name="arrow-back-outline" (click)="back()"></ion-icon>
+
+    <ion-title>{{id}}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+
+    <ion-item *ngFor="let fecha of fechas"  (click)="mapa()">
+      <ion-label>
+        {{fecha.fecha}}
+      </ion-label>
+    </ion-item>
+  
+
+
+
+  </ion-list>
+
+</ion-content>
